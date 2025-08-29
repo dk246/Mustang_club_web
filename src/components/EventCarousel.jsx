@@ -1,36 +1,38 @@
-import React, { useRef } from "react";
-
-const events = [
-  {
-    image: "/other/img3.JPG",
-    title: "Arcade Independence Square Meetup",
-    desc: "The first Mustang meetup in 2021 at Arcade Independence Square, Colombo.",
-  },
-  {
-    image: "/other/img4.JPG",
-    title: "Beach Cruise 2022",
-    desc: "Mustang owners cruising the south coast beaches.",
-  },
-  {
-    image: "/other/img2.JPG",
-    title: "Hill Country Ride",
-    desc: "Taking Mustangs to the central highlands.",
-  },
-];
+import React, { useState, useEffect, useRef } from "react";
 
 export default function EventCarousel() {
-  const [current, setCurrent] = React.useState(0);
+  const [events, setEvents] = useState([]);
+  const [current, setCurrent] = useState(0);
   const timeoutRef = useRef(null);
 
+  // Fetch events from JSON
+  useEffect(() => {
+    fetch("/events/events.json")
+      .then((res) => res.json())
+      .then((data) =>
+        setEvents(
+          data.map((event) => ({
+            ...event,
+            image: `/events/${event.image}`,
+          }))
+        )
+      );
+  }, []);
+
   // Auto-slide every 3.5 seconds
-  React.useEffect(() => {
+  useEffect(() => {
+    if (events.length === 0) return;
     timeoutRef.current = setTimeout(() => {
       setCurrent((prev) => (prev + 1) % events.length);
     }, 3500);
     return () => clearTimeout(timeoutRef.current);
-  }, [current]);
+  }, [current, events.length]);
 
   const goToSlide = (idx) => setCurrent(idx);
+
+  if (events.length === 0) {
+    return <div className="text-center text-indigo-100">Loading events...</div>;
+  }
 
   return (
     <div className="w-full max-w-[1400px] mx-auto bg-gradient-to-r from-indigo-700 via-indigo-500 to-indigo-900 rounded-2xl shadow-2xl p-10 relative overflow-hidden">
@@ -39,7 +41,7 @@ export default function EventCarousel() {
           <img
             src={events[current].image}
             alt={events[current].title}
-            className="rounded-xl shadow-2xl object-cover w-[680px] h-[420px] transition-all duration-500 border-5 border-indigo-900"
+            className="rounded-xl shadow-2xl object-cover w-[680px] h-[420px] transition-all duration-500 border-8 border-indigo-900"
           />
         </div>
         <div className="w-full md:w-3/7 px-0 md:px-14 py-7 md:py-0">
