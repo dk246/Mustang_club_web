@@ -1,16 +1,31 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 
-export default function GalleryCarousel({ images }) {
+export default function GalleryCarousel() {
+  const [images, setImages] = useState([]);
   const [current, setCurrent] = useState(0);
   const timeoutRef = useRef(null);
 
+  // Fetch image list from JSON
+  useEffect(() => {
+    fetch("/gallery/gallery.json")
+      .then((res) => res.json())
+      .then((data) => setImages(data.map((img) => `/gallery/${img}`)));
+  }, []);
+
   // Auto-slide every 3 seconds
-  React.useEffect(() => {
+  useEffect(() => {
+    if (images.length === 0) return;
     timeoutRef.current = setTimeout(() => {
       setCurrent((prev) => (prev + 1) % images.length);
     }, 3000);
     return () => clearTimeout(timeoutRef.current);
-  }, [current, images.length]);
+  }, [current, images]);
+
+  if (images.length === 0) {
+    return (
+      <div className="text-center text-indigo-900">Loading gallery...</div>
+    );
+  }
 
   const goToSlide = (idx) => setCurrent(idx);
 
